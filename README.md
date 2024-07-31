@@ -14,4 +14,4 @@
   - README.me 파일은 생각나는 기타 사항들을 모두 작성해주면 됩니다.
 
 - **백엔드 개발 가이드**
-  - 링크 : https://www.notion.so/7730d8c8ec42414ea2935f68d6d676ee?v=9fc7c362632746d29f137c4c99c1feee&p=bbdb30b738c34fca8c1cdac0561b76d7&pm=s
+  - 링크 : https://www.notion.so/7730d8c8ec42414ea2935f68d6d676ee?v=9fc7c362632746d29f137c4c99c1feee&p=490758fb1c5e46eb90c6ab02f75ee7eb&pm=s
