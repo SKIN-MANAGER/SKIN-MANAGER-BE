@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.repository;
+package com.skin_manager.skin_manager.repository.member;
 
 import com.skin_manager.skin_manager.model.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

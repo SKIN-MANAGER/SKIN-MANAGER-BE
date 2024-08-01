@@ -1,9 +1,9 @@
 package com.skin_manager.skin_manager.controller;
 
-import com.skin_manager.skin_manager.model.dto.MemberDTO;
-import com.skin_manager.skin_manager.model.dto.request.MemberSignupRequestDTO;
-import com.skin_manager.skin_manager.model.dto.response.MemberSignupResponseDTO;
-import com.skin_manager.skin_manager.service.MemberService;
+import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.signup.response.MemberSignupResponseDTO;
+import com.skin_manager.skin_manager.service.member.MemberService;
 import com.skin_manager.skin_manager.util.ResponseResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

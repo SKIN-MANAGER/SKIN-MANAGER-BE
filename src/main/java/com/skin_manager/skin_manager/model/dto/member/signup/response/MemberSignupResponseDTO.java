@@ -1,6 +1,6 @@
-package com.skin_manager.skin_manager.model.dto.response;
+package com.skin_manager.skin_manager.model.dto.member.signup.response;
 
-import com.skin_manager.skin_manager.model.dto.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
 import com.skin_manager.skin_manager.util.MemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

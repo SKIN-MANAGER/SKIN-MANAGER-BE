@@ -1,10 +1,10 @@
-package com.skin_manager.skin_manager.service;
+package com.skin_manager.skin_manager.service.member;
 
 import com.skin_manager.skin_manager.exception.ErrorCode;
-import com.skin_manager.skin_manager.model.dto.MemberDTO;
-import com.skin_manager.skin_manager.model.dto.request.MemberSignupRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
 import com.skin_manager.skin_manager.model.entity.MemberEntity;
-import com.skin_manager.skin_manager.repository.MemberRepository;
+import com.skin_manager.skin_manager.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextException;

@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto;
+package com.skin_manager.skin_manager.model.dto.member;
 
 import com.skin_manager.skin_manager.model.entity.MemberEntity;
 import com.skin_manager.skin_manager.util.MemberRole;
