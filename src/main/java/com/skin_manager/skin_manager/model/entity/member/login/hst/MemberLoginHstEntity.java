@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.entity.memberloginhst;
+package com.skin_manager.skin_manager.model.entity.member.login.hst;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,14 +21,17 @@ public class MemberLoginHstEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long memberLoginHstSeq;
 
-    @Column(name = "MEMBER_SEQ")
-    private long memberSeq;
+    @Column(name = "MEMBER_LOGIN_SEQ")
+    private long memberLoginSeq;
 
     @Column(name = "ID")
     private String id;
 
     @Column(name = "PWD")
     private String pwd;
+
+    @Column(name = "PWD_ERR_CNT")
+    private int pwdErrCnt;
 
     @Column(name = "REG_DTM")
     private Timestamp regDtm;
@@ -46,11 +49,12 @@ public class MemberLoginHstEntity {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberLoginHstEntity createMemberLoginHstEntity(long memberSeq, String id, String pwd) {
+    public static MemberLoginHstEntity createMemberLoginHstEntity(long memberLoginSeq, String id, String pwd, int pwdErrCnt) {
         MemberLoginHstEntity memberLoginHstEntity = new MemberLoginHstEntity();
-        memberLoginHstEntity.setMemberSeq(memberSeq);
+        memberLoginHstEntity.setMemberLoginSeq(memberLoginSeq);
         memberLoginHstEntity.setId(id);
         memberLoginHstEntity.setPwd(pwd);
+        memberLoginHstEntity.setPwdErrCnt(pwdErrCnt);
         return memberLoginHstEntity;
     }
 }

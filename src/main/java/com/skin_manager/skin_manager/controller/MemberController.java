@@ -1,11 +1,12 @@
 package com.skin_manager.skin_manager.controller;
 
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.MemberLoginDTO;
 import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.signup.response.MemberSignupResponseDTO;
-import com.skin_manager.skin_manager.model.dto.memberloginhst.MemberLoginHstDTO;
-import com.skin_manager.skin_manager.model.dto.memberloginhst.login.request.MemberLoginRequestDTO;
-import com.skin_manager.skin_manager.model.dto.memberloginhst.login.response.MemberLoginResponseDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.hst.MemberLoginHstDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.request.MemberLoginRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.response.MemberLoginResponseDTO;
 import com.skin_manager.skin_manager.service.member.MemberService;
 import com.skin_manager.skin_manager.util.ResponseResultCode;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +45,8 @@ public class MemberController {
      */
     @PostMapping("/login")
     public ResponseResultCode<MemberLoginResponseDTO> login(@RequestBody MemberLoginRequestDTO memberLoginRequestDTO) {
-        MemberLoginHstDTO memberLoginHstDTO = memberService.login(memberLoginRequestDTO);
+        MemberLoginDTO memberLoginDTO = memberService.login(memberLoginRequestDTO);
 
-        return ResponseResultCode.success(MemberLoginResponseDTO.of(memberLoginHstDTO));
+        return ResponseResultCode.success(MemberLoginResponseDTO.of(memberLoginDTO));
     }
 }

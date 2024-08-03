@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.entity.memberhst;
+package com.skin_manager.skin_manager.model.entity.member.hst;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,12 +24,6 @@ public class MemberHstEntity {
     @Column(name = "MEMBER_SEQ")
     private long memberSeq;
 
-    @Column(name = "ID")
-    private String id;
-
-    @Column(name = "PWD")
-    private String pwd;
-
     @Column(name = "EMAIL")
     private String email;
 
@@ -38,6 +32,9 @@ public class MemberHstEntity {
 
     @Column(name = "SNS")
     private String sns;
+
+    @Column(name = "MEMBER_YN")
+    private String memberYn;
 
     @Column(name = "REG_DTM")
     private Timestamp regDtm;
@@ -55,14 +52,13 @@ public class MemberHstEntity {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberHstEntity createMemberHstEntity(long memberSeq, String id, String pwd, String email, String role, String sns) {
+    public static MemberHstEntity createMemberHstEntity(long memberSeq, String email, String role, String sns, String memberYn) {
         MemberHstEntity memberHstEntity = new MemberHstEntity();
         memberHstEntity.setMemberSeq(memberSeq);
-        memberHstEntity.setId(id);
-        memberHstEntity.setPwd(pwd);
         memberHstEntity.setEmail(email);
         memberHstEntity.setRole(role);
         memberHstEntity.setSns(sns);
+        memberHstEntity.setMemberYn(memberYn);
         return memberHstEntity;
     }
 }

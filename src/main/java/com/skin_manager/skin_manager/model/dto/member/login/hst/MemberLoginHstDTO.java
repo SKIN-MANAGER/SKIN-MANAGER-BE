@@ -1,6 +1,6 @@
-package com.skin_manager.skin_manager.model.dto.memberloginhst;
+package com.skin_manager.skin_manager.model.dto.member.login.hst;
 
-import com.skin_manager.skin_manager.model.entity.memberloginhst.MemberLoginHstEntity;
+import com.skin_manager.skin_manager.model.entity.member.login.hst.MemberLoginHstEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,9 +14,10 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class MemberLoginHstDTO {
     private long memberLoginHstSeq;
-    private long memberSeq;
+    private long memberLoginSeq;
     private String id;
     private String pwd;
+    private int pwdErrCnt;
     private Timestamp regDtm;
     private Timestamp modDtm;
 
@@ -24,9 +25,10 @@ public class MemberLoginHstDTO {
     public static MemberLoginHstDTO of(MemberLoginHstEntity memberLoginHstEntity) {
         return new MemberLoginHstDTO(
                 memberLoginHstEntity.getMemberLoginHstSeq(),
-                memberLoginHstEntity.getMemberSeq(),
+                memberLoginHstEntity.getMemberLoginSeq(),
                 memberLoginHstEntity.getId(),
                 memberLoginHstEntity.getPwd(),
+                memberLoginHstEntity.getPwdErrCnt(),
                 memberLoginHstEntity.getRegDtm(),
                 memberLoginHstEntity.getModDtm()
         );

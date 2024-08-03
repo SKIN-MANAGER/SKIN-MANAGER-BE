@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.memberloginhst.login.request;
+package com.skin_manager.skin_manager.model.dto.member.login.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

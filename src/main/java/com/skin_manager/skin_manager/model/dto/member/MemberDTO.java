@@ -13,13 +13,11 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberDTO {
-
     private long memberSeq;
-    private String id;
-    private String pwd;
     private String email;
     private String role;
     private String sns;
+    private String memberYn;
     private Timestamp regDtm;
     private Timestamp modDtm;
 
@@ -27,11 +25,10 @@ public class MemberDTO {
     public static MemberDTO of(MemberEntity memberEntity) {
         return new MemberDTO(
                 memberEntity.getMemberSeq(),
-                memberEntity.getId(),
-                memberEntity.getPwd(),
                 memberEntity.getEmail(),
                 memberEntity.getRole(),
                 memberEntity.getSns(),
+                memberEntity.getMemberYn(),
                 memberEntity.getRegDtm(),
                 memberEntity.getModDtm()
         );

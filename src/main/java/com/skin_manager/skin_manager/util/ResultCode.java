@@ -8,7 +8,11 @@ import lombok.Getter;
 public enum ResultCode {
     SUCCESS("0000", "성공"),
 
-    FAIL("9999", "실패");
+    FAIL("9999", "실패"),
+
+    YES("Y", ""),
+
+    NO("N", "");
 
     private String value;
     private String message;
