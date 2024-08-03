@@ -1,7 +1,7 @@
-package com.skin_manager.skin_manager.model.entity;
+package com.skin_manager.skin_manager.model.entity.member;
 
-import com.skin_manager.skin_manager.util.MemberRole;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,58 +9,56 @@ import lombok.Setter;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+@Entity
 @Getter
 @Setter
-@Entity
 @NoArgsConstructor
-@Table(name = "`MEMBER`")
+@AllArgsConstructor
+@Table(name = "MEMBER")
 public class MemberEntity {
-
     @Id
+    @Column(name = "MEMBER_SEQ")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long memberSeq;
 
-    @Column(length = 30, nullable = false, unique = true)
-    private String memberId;
+    @Column(name = "ID")
+    private String id;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "PWD")
     private String pwd;
 
-    @Column(length = 50, nullable = false)
+    @Column(name = "EMAIL")
     private String email;
 
-    @Column(name = "role")
-    @Enumerated(EnumType.STRING)
-    private MemberRole memberRole = MemberRole.USER;
+    @Column(name = "ROLE")
+    private String role;
 
-    @Column(length = 20, nullable = false)
+    @Column(name = "SNS")
     private String sns;
 
-    @Column(name = "reg_dtm")
+    @Column(name = "REG_DTM")
     private Timestamp regDtm;
 
-    @Column(name = "mod_dtm")
+    @Column(name = "MOD_DTM")
     private Timestamp modDtm;
 
     @PrePersist
-    void regDtm() {
+    public void regDtm() {
         this.regDtm = Timestamp.from(Instant.now());
     }
 
     @PreUpdate
-    void modDtm() {
+    public void modDtm() {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberEntity createMemberEntity(String memberId, String password, String email, MemberRole memberRole, String sns) {
+    public static MemberEntity createMemberEntity(String id, String password, String email, String role, String sns) {
         MemberEntity memberEntity = new MemberEntity();
-
-        memberEntity.setMemberId(memberId);
+        memberEntity.setId(id);
         memberEntity.setPwd(password);
         memberEntity.setEmail(email);
-        memberEntity.setMemberRole(memberRole.USER);
+        memberEntity.setRole(role);
         memberEntity.setSns(sns);
-
         return memberEntity;
     }
 }

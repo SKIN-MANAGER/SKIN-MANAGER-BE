@@ -2,14 +2,14 @@ package com.skin_manager.skin_manager.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
-public enum MemberRole {
-    ADMIN("ADMIN"),
+public enum ResultCode {
+    SUCCESS("0000", "성공"),
 
-    USER("USER");
+    FAIL("9999", "실패");
 
     private String value;
+    private String message;
 }
