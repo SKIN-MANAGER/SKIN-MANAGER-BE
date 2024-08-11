@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.signup.request;
+package com.skin_manager.skin_manager.model.dto.member.login.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,10 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberSignupRequestDTO {
+public class MemberLoginRequestDTO {
     private String id;
     private String pwd;
-    private String email;
-    private String role;
-    private String sns;
 }

@@ -19,7 +19,7 @@ public class ResponseResultCode<T> {
 
     // 작업을 성공할 경우
     public static <T> ResponseResultCode<T> success(T result) {
-        return new ResponseResultCode<>("SUCCESS", result, ResponseEntity.ok("로그인 성공"));
+        return new ResponseResultCode<>(ResultCode.SUCCESS.getValue(), result, ResponseEntity.ok(ResultCode.SUCCESS.getMessage()));
     }
 
     public static <T> ResponseResultCode<T> success() {

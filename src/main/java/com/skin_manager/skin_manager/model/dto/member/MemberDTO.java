@@ -1,24 +1,23 @@
 package com.skin_manager.skin_manager.model.dto.member;
 
-import com.skin_manager.skin_manager.model.entity.MemberEntity;
-import com.skin_manager.skin_manager.util.MemberRole;
-import lombok.*;
+import com.skin_manager.skin_manager.model.entity.member.MemberEntity;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@AllArgsConstructor
 public class MemberDTO {
-
     private long memberSeq;
-    private String memberId;
-    private String pwd;
     private String email;
-    private MemberRole memberRole;
+    private String role;
     private String sns;
+    private String memberYn;
     private Timestamp regDtm;
     private Timestamp modDtm;
 
@@ -26,11 +25,10 @@ public class MemberDTO {
     public static MemberDTO of(MemberEntity memberEntity) {
         return new MemberDTO(
                 memberEntity.getMemberSeq(),
-                memberEntity.getMemberId(),
-                memberEntity.getPwd(),
                 memberEntity.getEmail(),
-                memberEntity.getMemberRole(),
+                memberEntity.getRole(),
                 memberEntity.getSns(),
+                memberEntity.getMemberYn(),
                 memberEntity.getRegDtm(),
                 memberEntity.getModDtm()
         );
