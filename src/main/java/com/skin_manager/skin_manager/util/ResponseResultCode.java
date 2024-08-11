@@ -21,4 +21,8 @@ public class ResponseResultCode<T> {
     public static <T> ResponseResultCode<T> success(T result) {
         return new ResponseResultCode<>("SUCCESS", result, ResponseEntity.ok("로그인 성공"));
     }
+
+    public static <T> ResponseResultCode<T> success() {
+        return new ResponseResultCode<>("SUCCESS", null, null);
+    }
 }
