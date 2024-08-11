@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-
     DUPLICATED_MEMBER_ID(HttpStatus.CONFLICT, "회원가입하려는 아이디가 이미 존재합니다."),     // memberId 중복 에러코드
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "작성하신 아이디는 회원가입이 가능한 아이디 입니다."),
@@ -25,6 +24,16 @@ public enum ErrorCode {
     INVALID_POST_PERMISSION(HttpStatus.UNAUTHORIZED, "해당 게시글 작성자가 아닙니다."),
 
     ALREADY_RECOMMENDED(HttpStatus.CONFLICT, "해당 회원은 이미 게시글을 추천한 상태입니다."),
+
+    KAKAO_NOT_FOUND(HttpStatus.NOT_FOUND, "카카오 로그인 중 오류 발생"),
+
+    SIGNUP_NOT_FOUND(HttpStatus.NOT_FOUND, "회원가입 중 오류 발생"),
+
+    LOGIN_NOT_FOUND(HttpStatus.NOT_FOUND, "로그인 중 오류 발생"),
+
+    TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "토큰 요청 중 오류 발생"),
+
+    USER_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보 요청 중 오류 발생"),
     ;
 
     private HttpStatus httpStatus;
