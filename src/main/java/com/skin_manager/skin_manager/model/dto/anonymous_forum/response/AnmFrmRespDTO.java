@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @Builder
 public class AnmFrmRespDTO {
 
-    private Long postSeq;
+    private long postSeq;
 
     private String nickName;
 

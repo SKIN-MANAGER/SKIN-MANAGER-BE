@@ -21,4 +21,8 @@ public class ResponseResultCode<T> {
     public static <T> ResponseResultCode<T> success(T result) {
         return new ResponseResultCode<>(ResultCode.SUCCESS.getValue(), result, ResponseEntity.ok(ResultCode.SUCCESS.getMessage()));
     }
+
+    public static <T> ResponseResultCode<T> success() {
+        return new ResponseResultCode<>("SUCCESS", null, null);
+    }
 }
