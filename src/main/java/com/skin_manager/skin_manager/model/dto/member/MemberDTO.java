@@ -17,6 +17,7 @@ public class MemberDTO {
     private String email;
     private String role;
     private String sns;
+    private String snsId;
     private String memberYn;
     private Timestamp regDtm;
     private Timestamp modDtm;
@@ -28,6 +29,7 @@ public class MemberDTO {
                 memberEntity.getEmail(),
                 memberEntity.getRole(),
                 memberEntity.getSns(),
+                memberEntity.getSnsId(),
                 memberEntity.getMemberYn(),
                 memberEntity.getRegDtm(),
                 memberEntity.getModDtm()

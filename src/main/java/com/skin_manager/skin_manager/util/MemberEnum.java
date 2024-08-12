@@ -2,14 +2,17 @@ package com.skin_manager.skin_manager.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
-public enum MemberRole {
+public enum MemberEnum {
     ADMIN("ADMIN"),
 
-    USER("USER");
+    USER("USER"),
+
+    KAKAO("kakao"),
+
+    NAVER("naver");
 
     private String value;
 }

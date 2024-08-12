@@ -34,6 +34,8 @@ public enum ErrorCode {
     TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "토큰 요청 중 오류 발생"),
 
     USER_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보 요청 중 오류 발생"),
+
+    NAVER_NOT_FOUND(HttpStatus.NOT_FOUND, "네이버 로그인 중 오류 발생"),
     ;
 
     private HttpStatus httpStatus;
