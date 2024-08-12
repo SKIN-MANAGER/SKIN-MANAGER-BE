@@ -33,6 +33,9 @@ public class MemberHstEntity {
     @Column(name = "SNS")
     private String sns;
 
+    @Column(name = "SNS_ID")
+    private String snsId;
+
     @Column(name = "MEMBER_YN")
     private String memberYn;
 
@@ -52,12 +55,13 @@ public class MemberHstEntity {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberHstEntity createMemberHstEntity(long memberSeq, String email, String role, String sns, String memberYn) {
+    public static MemberHstEntity createMemberHstEntity(long memberSeq, String email, String role, String sns, String snsId, String memberYn) {
         MemberHstEntity memberHstEntity = new MemberHstEntity();
         memberHstEntity.setMemberSeq(memberSeq);
         memberHstEntity.setEmail(email);
         memberHstEntity.setRole(role);
         memberHstEntity.setSns(sns);
+        memberHstEntity.setSnsId(snsId);
         memberHstEntity.setMemberYn(memberYn);
         return memberHstEntity;
     }

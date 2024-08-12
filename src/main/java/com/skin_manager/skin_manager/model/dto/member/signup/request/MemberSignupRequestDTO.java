@@ -14,5 +14,4 @@ public class MemberSignupRequestDTO {
     private String pwd;
     private String email;
     private String role;
-    private String sns;
 }

@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.login.kakao.response;
+package com.skin_manager.skin_manager.model.dto.member.login.naver.response;
 
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.AuthTokens;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberLoginKakaoResponseDTO {
+public class MemberLoginNaverResponseDTO {
     private String id;
     private String email;
     private AuthTokens token;

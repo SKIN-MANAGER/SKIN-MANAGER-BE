@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.login.kakao.request;
+package com.skin_manager.skin_manager.model.dto.member.login.naver.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberLoginKakaoRequestDTO {
+public class MemberLoginNaverRequestDTO {
     private String code;
     private String clientId;
-    private String redirectUri;
+    private String clientSecret;
+    private String state;
 }

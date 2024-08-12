@@ -10,6 +10,8 @@ import com.skin_manager.skin_manager.model.dto.member.login.kakao.AuthTokens;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.AuthTokensGenerator;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.request.MemberLoginKakaoRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.naver.request.MemberLoginNaverRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.naver.response.MemberLoginNaverResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.request.MemberLoginRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
 import com.skin_manager.skin_manager.model.entity.member.MemberEntity;
@@ -20,8 +22,8 @@ import com.skin_manager.skin_manager.repository.member.MemberRepository;
 import com.skin_manager.skin_manager.repository.member.hst.MemberHstRepository;
 import com.skin_manager.skin_manager.repository.member.login.MemberLoginRepository;
 import com.skin_manager.skin_manager.repository.member.login.hst.MemberLoginHstRepository;
-import com.skin_manager.skin_manager.util.MemberRole;
-import com.skin_manager.skin_manager.util.ResultCode;
+import com.skin_manager.skin_manager.util.MemberEnum;
+import com.skin_manager.skin_manager.util.ResultCodeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,10 +55,16 @@ public class MemberService {
     private final AuthTokensGenerator authTokensGenerator;
 
     @Value("${kakao.client-id}")
-    private String clientId;
+    private String kakaoClientId;
 
     @Value("${kakao.redirect-uri}")
-    private String redirectUri;
+    private String kakaoRedirectUri;
+
+    @Value("${naver.client-id}")
+    private String naverClientId;
+
+    @Value("${naver.client-secret}")
+    private String naverClientSecret;
 
     /**
      * 회원가입
@@ -90,8 +98,9 @@ public class MemberService {
         MemberEntity memberEntity = memberRepository.save(MemberEntity.createMemberEntity(
                 memberSigupRequestDTO.getEmail(),
                 memberSigupRequestDTO.getRole(),
-                memberSigupRequestDTO.getSns(),
-                ResultCode.YES.getValue()
+                null,
+                null,
+                ResultCodeEnum.YES.getValue()
         ));
 
         // member history 테이블 저장
@@ -99,7 +108,8 @@ public class MemberService {
                 memberEntity.getMemberSeq(),
                 memberSigupRequestDTO.getEmail(),
                 memberSigupRequestDTO.getRole(),
-                memberSigupRequestDTO.getSns(),
+                null,
+                null,
                 memberEntity.getMemberYn()
         ));
 
@@ -184,7 +194,7 @@ public class MemberService {
     @Transactional
     public MemberLoginKakaoResponseDTO kakaoLogin(String code) {
         // 인가코드로 토큰 요청
-        String accessToken = getAccessToken(new MemberLoginKakaoRequestDTO(code, clientId, redirectUri));
+        String accessToken = getAccessToken(new MemberLoginKakaoRequestDTO(code, kakaoClientId, kakaoRedirectUri));
 
         // 토큰으로 사용자정보 요청
         Map<String, Object> userInfo = getKakaoInfo(accessToken);
@@ -209,7 +219,7 @@ public class MemberService {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
-        body.add("client_id", kakaoLoginRequestDTO.getCliendId());
+        body.add("client_id", kakaoLoginRequestDTO.getClientId());
         body.add("redirect_uri", kakaoLoginRequestDTO.getRedirectUri());
         body.add("code", kakaoLoginRequestDTO.getCode());
 
@@ -274,16 +284,17 @@ public class MemberService {
      * @return
      */
     private MemberLoginKakaoResponseDTO getKakaoLogin(Map<String, Object> userInfo) {
-        Long uid = Long.valueOf(userInfo.get("id").toString());
+        String uid = userInfo.get("id").toString();
         String email = userInfo.get("email").toString();
+        String sns = MemberEnum.KAKAO.getValue();
 
         // 회원가입과 로그인을 동시에 체크
-        memberLoginRepository.findById(email).ifPresentOrElse(
-                obj -> saveLogin(email, obj),
-                () -> saveMemberAndLogin(email, email, MemberRole.USER.getValue())
+        memberLoginRepository.findById(uid).ifPresentOrElse(
+                obj -> saveLogin(uid, sns, obj),
+                () -> saveMemberAndLogin(uid, email, MemberEnum.USER.getValue(), sns)
         );
 
-        AuthTokens token = authTokensGenerator.generate(uid.toString());
+        AuthTokens token = authTokensGenerator.generate(uid);
 
         return new MemberLoginKakaoResponseDTO(uid, email, token);
     }
@@ -293,16 +304,17 @@ public class MemberService {
      * <p>
      * Login, Login History 테이블을 업데이트하는 메소드이다.
      *
-     * @param email
+     * @param id
+     * @param sns
      * @param memberLoginEntity
      */
-    private void saveLogin(String email, MemberLoginEntity memberLoginEntity) {
+    private void saveLogin(String id, String sns, MemberLoginEntity memberLoginEntity) {
         // 로그인 후 member login 테이블 수정
         memberLoginRepository.save(MemberLoginEntity.createMemberLoginEntity(
                 memberLoginEntity.getMemberLoginSeq(),
                 memberLoginEntity.getMemberSeq(),
-                email,
-                encoder.encode("kakao"),
+                id,
+                encoder.encode(sns),
                 0,
                 memberLoginEntity.getRegDtm()
         ));
@@ -310,8 +322,8 @@ public class MemberService {
         // 로그인 후 member login history 테이블 저장
         memberLoginHstRepository.save(MemberLoginHstEntity.createMemberLoginHstEntity(
                 memberLoginEntity.getMemberSeq(),
-                email,
-                encoder.encode("kakao"),
+                id,
+                encoder.encode(sns),
                 memberLoginEntity.getPwdErrCnt()
         ));
     }
@@ -324,15 +336,16 @@ public class MemberService {
      * @param id
      * @param email
      * @param role
-     * @return
+     * @param sns
      */
-    private MemberLoginEntity saveMemberAndLogin(String id, String email, String role) {
+    private void saveMemberAndLogin(String id, String email, String role, String sns) {
         // member 테이블 저장
         MemberEntity memberEntity = memberRepository.save(MemberEntity.createMemberEntity(
                 email,
                 role,
-                "kakao",
-                ResultCode.YES.getValue()
+                sns,
+                id,
+                ResultCodeEnum.YES.getValue()
         ));
 
         // member history 테이블 저장
@@ -340,7 +353,8 @@ public class MemberService {
                 memberEntity.getMemberSeq(),
                 email,
                 role,
-                "kakao",
+                sns,
+                id,
                 memberEntity.getMemberYn()
         ));
 
@@ -349,7 +363,7 @@ public class MemberService {
                 null,
                 memberEntity.getMemberSeq(),
                 id,
-                encoder.encode("kakao"),
+                encoder.encode(sns),
                 0,
                 null
         ));
@@ -358,9 +372,132 @@ public class MemberService {
         memberLoginHstRepository.save(MemberLoginHstEntity.createMemberLoginHstEntity(
                 memberLoginEntity.getMemberLoginSeq(),
                 id,
-                encoder.encode("kakao"),
+                encoder.encode(sns),
                 memberLoginEntity.getPwdErrCnt()
         ));
-        return memberLoginEntity;
+    }
+
+    /**
+     * 네이버로그인
+     *
+     * @param code
+     * @param state
+     * @return
+     */
+    @Transactional
+    public MemberLoginNaverResponseDTO naverLogin(String code, String state) {
+        // 인가코드로 토큰 요청
+        String accessToken = getAccessToken(new MemberLoginNaverRequestDTO(code, naverClientId, naverClientSecret, state));
+
+        // 토큰으로 사용자정보 요청
+        Map<String, Object> userInfo = getNaverInfo(accessToken);
+
+        // 사용자정보 등록
+        MemberLoginNaverResponseDTO memberLoginNaverResponseDTO = getNaverLogin(userInfo);
+
+        return memberLoginNaverResponseDTO;
+    }
+
+    /**
+     * 토큰 요청
+     * <p>
+     * 인가 코드로 네이버를 통해 토큰을 요청하는 메소드이다.
+     *
+     * @param memberLoginNaverRequestDTO
+     * @return
+     */
+    private String getAccessToken(MemberLoginNaverRequestDTO memberLoginNaverRequestDTO) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", memberLoginNaverRequestDTO.getClientId());
+        body.add("client_secret", memberLoginNaverRequestDTO.getClientSecret());
+        body.add("code", memberLoginNaverRequestDTO.getCode());
+        body.add("state", memberLoginNaverRequestDTO.getState());
+
+        HttpEntity<MultiValueMap<String, String>> naverTokenRequest = new HttpEntity<>(body, headers);
+        RestTemplate rt = new RestTemplate();
+        ResponseEntity<String> response = rt.exchange("https://nid.naver.com/oauth2.0/token", HttpMethod.POST, naverTokenRequest, String.class);
+
+        String responseBody = response.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(responseBody);
+        } catch (JsonProcessingException e) {
+            throw new ApplicationContextException(ErrorCode.TOKEN_NOT_FOUND.getMessage());
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("naverLogin Service getAccessToken : " + jsonNode);
+        }
+        return jsonNode.get("access_token").asText();
+    }
+
+    /**
+     * 네이버정보 요청
+     * <p>
+     * 토큰으로 네이버를 통해 정보를 요청하는 메소드이다.
+     *
+     * @param accessToken
+     * @return
+     */
+    private Map<String, Object> getNaverInfo(String accessToken) {
+        Map<String, Object> userInfo = new HashMap<>();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        HttpEntity<MultiValueMap<String, String>> naverUserInfoRequest = new HttpEntity<>(headers);
+        RestTemplate rt = new RestTemplate();
+        ResponseEntity<String> response = rt.exchange("https://openapi.naver.com/v1/nid/me", HttpMethod.POST, naverUserInfoRequest, String.class);
+
+        String responseBody = response.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(responseBody);
+        } catch (JsonProcessingException e) {
+            throw new ApplicationContextException(ErrorCode.USER_INFO_NOT_FOUND.getMessage());
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("naverLogin Service getNaverInfo : " + jsonNode);
+        }
+
+        String id = jsonNode.get("response").get("id").asText();
+        String email = jsonNode.get("response").get("email").asText();
+
+        userInfo.put("id", id);
+        userInfo.put("email", email);
+
+        return userInfo;
+    }
+
+    /**
+     * 네이버로그인 요청
+     * <p>
+     * 사용자정보를 저장하고 토큰을 생성하는 메소드이다.
+     *
+     * @param userInfo
+     * @return
+     */
+    private MemberLoginNaverResponseDTO getNaverLogin(Map<String, Object> userInfo) {
+        String uid = userInfo.get("id").toString();
+        String email = userInfo.get("email").toString();
+        String sns = MemberEnum.NAVER.getValue();
+
+        // 회원가입과 로그인을 동시에 체크
+        memberLoginRepository.findById(uid).ifPresentOrElse(
+                obj -> saveLogin(uid, sns, obj),
+                () -> saveMemberAndLogin(uid, email, MemberEnum.USER.getValue(), sns)
+        );
+
+        AuthTokens token = authTokensGenerator.generate(uid);
+
+        return new MemberLoginNaverResponseDTO(uid, email, token);
     }
 }
