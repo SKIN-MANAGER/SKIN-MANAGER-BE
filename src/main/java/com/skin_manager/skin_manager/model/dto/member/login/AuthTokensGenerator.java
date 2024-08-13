@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.login.kakao;
+package com.skin_manager.skin_manager.model.dto.member.login;
 
 
 import lombok.RequiredArgsConstructor;

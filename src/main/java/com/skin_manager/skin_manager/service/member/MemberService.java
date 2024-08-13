@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
+import com.skin_manager.skin_manager.model.dto.member.login.AuthTokensGenerator;
 import com.skin_manager.skin_manager.model.dto.member.login.MemberLoginDTO;
-import com.skin_manager.skin_manager.model.dto.member.login.kakao.AuthTokens;
-import com.skin_manager.skin_manager.model.dto.member.login.kakao.AuthTokensGenerator;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.request.MemberLoginKakaoRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.request.MemberLoginNaverRequestDTO;
@@ -32,6 +32,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,7 @@ public class MemberService {
     private final MemberLoginHstRepository memberLoginHstRepository;
     private final BCryptPasswordEncoder encoder;
     private final AuthTokensGenerator authTokensGenerator;
+    private final StringHttpMessageConverter stringHttpMessageConverter;
 
     @Value("${kakao.client-id}")
     private String kakaoClientId;
@@ -96,6 +98,10 @@ public class MemberService {
     private MemberEntity saveMemberAndLogin(MemberSignupRequestDTO memberSigupRequestDTO) {
         // member 테이블 저장
         MemberEntity memberEntity = memberRepository.save(MemberEntity.createMemberEntity(
+                memberSigupRequestDTO.getName(),
+                memberSigupRequestDTO.getFirstPhone(),
+                memberSigupRequestDTO.getMiddlePhone(),
+                memberSigupRequestDTO.getLastPhone(),
                 memberSigupRequestDTO.getEmail(),
                 memberSigupRequestDTO.getRole(),
                 null,
@@ -106,6 +112,10 @@ public class MemberService {
         // member history 테이블 저장
         memberHstRepository.save(MemberHstEntity.createMemberHstEntity(
                 memberEntity.getMemberSeq(),
+                memberSigupRequestDTO.getName(),
+                memberSigupRequestDTO.getFirstPhone(),
+                memberSigupRequestDTO.getMiddlePhone(),
+                memberSigupRequestDTO.getLastPhone(),
                 memberSigupRequestDTO.getEmail(),
                 memberSigupRequestDTO.getRole(),
                 null,
@@ -268,9 +278,29 @@ public class MemberService {
 
         Long id = jsonNode.get("id").asLong();
         String email = jsonNode.get("kakao_account").get("email").asText();
+        String name = jsonNode.get("kakao_account").get("name").asText();
+        String phone = jsonNode.get("phone_number").asText();
+
+        String firstPhone;
+        String middlePhone;
+        String lastPhone;
+
+        if (phone.length() == 10) {
+            firstPhone = phone.substring(0, 3);
+            middlePhone = phone.substring(3, 6);
+            lastPhone = phone.substring(6);
+        } else {
+            firstPhone = phone.substring(0, 3);
+            middlePhone = phone.substring(3, 7);
+            lastPhone = phone.substring(7);
+        }
 
         userInfo.put("id", id);
         userInfo.put("email", email);
+        userInfo.put("name", name);
+        userInfo.put("firstPhone", firstPhone);
+        userInfo.put("middlePhone", middlePhone);
+        userInfo.put("lastPhone", lastPhone);
 
         return userInfo;
     }
@@ -286,12 +316,16 @@ public class MemberService {
     private MemberLoginKakaoResponseDTO getKakaoLogin(Map<String, Object> userInfo) {
         String uid = userInfo.get("id").toString();
         String email = userInfo.get("email").toString();
+        String name = userInfo.get("name").toString();
+        String firstPhone = userInfo.get("firstPhone").toString();
+        String middlePhone = userInfo.get("middlePhone").toString();
+        String lastPhone = userInfo.get("lastPhone").toString();
         String sns = MemberEnum.KAKAO.getValue();
 
         // 회원가입과 로그인을 동시에 체크
         memberLoginRepository.findById(uid).ifPresentOrElse(
                 obj -> saveLogin(uid, sns, obj),
-                () -> saveMemberAndLogin(uid, email, MemberEnum.USER.getValue(), sns)
+                () -> saveMemberAndLogin(name, firstPhone, middlePhone, lastPhone, uid, email, MemberEnum.USER.getValue(), sns)
         );
 
         AuthTokens token = authTokensGenerator.generate(uid);
@@ -333,14 +367,22 @@ public class MemberService {
      * <p>
      * Member, Member History, Login, Login History 테이블에 저장하는 메소드이다.
      *
+     * @param name
+     * @param firstPhone
+     * @param middlePhone
+     * @param lastPhone
      * @param id
      * @param email
      * @param role
      * @param sns
      */
-    private void saveMemberAndLogin(String id, String email, String role, String sns) {
+    private void saveMemberAndLogin(String name, String firstPhone, String middlePhone, String lastPhone, String id, String email, String role, String sns) {
         // member 테이블 저장
         MemberEntity memberEntity = memberRepository.save(MemberEntity.createMemberEntity(
+                name,
+                firstPhone,
+                middlePhone,
+                lastPhone,
                 email,
                 role,
                 sns,
@@ -351,6 +393,10 @@ public class MemberService {
         // member history 테이블 저장
         memberHstRepository.save(MemberHstEntity.createMemberHstEntity(
                 memberEntity.getMemberSeq(),
+                name,
+                firstPhone,
+                middlePhone,
+                lastPhone,
                 email,
                 role,
                 sns,
@@ -470,9 +516,29 @@ public class MemberService {
 
         String id = jsonNode.get("response").get("id").asText();
         String email = jsonNode.get("response").get("email").asText();
+        String name = jsonNode.get("response").get("name").asText();
+        String phone = jsonNode.get("response").get("mobile").asText();
+
+        String firstPhone;
+        String middlePhone;
+        String lastPhone;
+
+        if (phone.length() == 10) {
+            firstPhone = phone.substring(0, 3);
+            middlePhone = phone.substring(3, 6);
+            lastPhone = phone.substring(6);
+        } else {
+            firstPhone = phone.substring(0, 3);
+            middlePhone = phone.substring(3, 7);
+            lastPhone = phone.substring(7);
+        }
 
         userInfo.put("id", id);
         userInfo.put("email", email);
+        userInfo.put("name", name);
+        userInfo.put("firstPhone", firstPhone);
+        userInfo.put("middlePhone", middlePhone);
+        userInfo.put("lastPhone", lastPhone);
 
         return userInfo;
     }
@@ -488,12 +554,16 @@ public class MemberService {
     private MemberLoginNaverResponseDTO getNaverLogin(Map<String, Object> userInfo) {
         String uid = userInfo.get("id").toString();
         String email = userInfo.get("email").toString();
+        String name = userInfo.get("name").toString();
+        String firstPhone = userInfo.get("firstPhone").toString();
+        String middlePhone = userInfo.get("middlePhone").toString();
+        String lastPhone = userInfo.get("lastPhone").toString();
         String sns = MemberEnum.NAVER.getValue();
 
         // 회원가입과 로그인을 동시에 체크
         memberLoginRepository.findById(uid).ifPresentOrElse(
                 obj -> saveLogin(uid, sns, obj),
-                () -> saveMemberAndLogin(uid, email, MemberEnum.USER.getValue(), sns)
+                () -> saveMemberAndLogin(name, firstPhone, middlePhone, lastPhone, uid, email, MemberEnum.USER.getValue(), sns)
         );
 
         AuthTokens token = authTokensGenerator.generate(uid);

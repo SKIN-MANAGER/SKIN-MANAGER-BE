@@ -14,6 +14,10 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class MemberDTO {
     private long memberSeq;
+    private String name;
+    private String firstPhone;
+    private String middlePhone;
+    private String lastPhone;
     private String email;
     private String role;
     private String sns;
@@ -26,6 +30,10 @@ public class MemberDTO {
     public static MemberDTO of(MemberEntity memberEntity) {
         return new MemberDTO(
                 memberEntity.getMemberSeq(),
+                memberEntity.getName(),
+                memberEntity.getFirstPhone(),
+                memberEntity.getMiddlePhone(),
+                memberEntity.getLastPhone(),
                 memberEntity.getEmail(),
                 memberEntity.getRole(),
                 memberEntity.getSns(),

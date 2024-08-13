@@ -15,6 +15,10 @@ import java.sql.Timestamp;
 public class MemberHstDTO {
     private long memberHstSeq;
     private long memberSeq;
+    private String name;
+    private String firstPhone;
+    private String middlePhone;
+    private String lastPhone;
     private String email;
     private String role;
     private String sns;
@@ -28,6 +32,10 @@ public class MemberHstDTO {
         return new MemberHstDTO(
                 memberHstEntity.getMemberHstSeq(),
                 memberHstEntity.getMemberSeq(),
+                memberHstEntity.getName(),
+                memberHstEntity.getFirstPhone(),
+                memberHstEntity.getMiddlePhone(),
+                memberHstEntity.getLastPhone(),
                 memberHstEntity.getEmail(),
                 memberHstEntity.getRole(),
                 memberHstEntity.getSns(),
