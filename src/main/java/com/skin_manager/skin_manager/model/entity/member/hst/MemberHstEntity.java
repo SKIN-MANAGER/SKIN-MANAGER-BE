@@ -24,6 +24,18 @@ public class MemberHstEntity {
     @Column(name = "MEMBER_SEQ")
     private long memberSeq;
 
+    @Column(name = "NAME")
+    private String name;
+
+    @Column(name = "FIRST_PHONE")
+    private String firstPhone;
+
+    @Column(name = "MIDDLE_PHONE")
+    private String middlePhone;
+
+    @Column(name = "LAST_PHONE")
+    private String lastPhone;
+
     @Column(name = "EMAIL")
     private String email;
 
@@ -55,9 +67,13 @@ public class MemberHstEntity {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberHstEntity createMemberHstEntity(long memberSeq, String email, String role, String sns, String snsId, String memberYn) {
+    public static MemberHstEntity createMemberHstEntity(long memberSeq, String name, String firstPhone, String middlePhone, String lastPhone, String email, String role, String sns, String snsId, String memberYn) {
         MemberHstEntity memberHstEntity = new MemberHstEntity();
         memberHstEntity.setMemberSeq(memberSeq);
+        memberHstEntity.setName(name);
+        memberHstEntity.setFirstPhone(firstPhone);
+        memberHstEntity.setMiddlePhone(middlePhone);
+        memberHstEntity.setLastPhone(lastPhone);
         memberHstEntity.setEmail(email);
         memberHstEntity.setRole(role);
         memberHstEntity.setSns(sns);

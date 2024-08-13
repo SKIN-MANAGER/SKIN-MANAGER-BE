@@ -13,5 +13,9 @@ public class MemberSignupRequestDTO {
     private String id;
     private String pwd;
     private String email;
+    private String name;
+    private String firstPhone;
+    private String middlePhone;
+    private String lastPhone;
     private String role;
 }

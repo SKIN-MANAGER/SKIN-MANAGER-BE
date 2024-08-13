@@ -1,6 +1,6 @@
 package com.skin_manager.skin_manager.model.dto.member.login.naver.response;
 
-import com.skin_manager.skin_manager.model.dto.member.login.kakao.AuthTokens;
+import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

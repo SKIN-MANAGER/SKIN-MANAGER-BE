@@ -21,6 +21,18 @@ public class MemberEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long memberSeq;
 
+    @Column(name = "NAME")
+    private String name;
+
+    @Column(name = "FIRST_PHONE")
+    private String firstPhone;
+
+    @Column(name = "MIDDLE_PHONE")
+    private String middlePhone;
+
+    @Column(name = "LAST_PHONE")
+    private String lastPhone;
+
     @Column(name = "EMAIL")
     private String email;
 
@@ -52,8 +64,12 @@ public class MemberEntity {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberEntity createMemberEntity(String email, String role, String sns, String snsId, String memberYn) {
+    public static MemberEntity createMemberEntity(String name, String firstPhone, String middlePhone, String lastPhone, String email, String role, String sns, String snsId, String memberYn) {
         MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setName(name);
+        memberEntity.setFirstPhone(firstPhone);
+        memberEntity.setMiddlePhone(middlePhone);
+        memberEntity.setLastPhone(lastPhone);
         memberEntity.setEmail(email);
         memberEntity.setRole(role);
         memberEntity.setSns(sns);
