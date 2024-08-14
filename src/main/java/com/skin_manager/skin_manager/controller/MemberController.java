@@ -34,10 +34,14 @@ public class MemberController {
         try {
             MemberDTO memberDTO = memberService.signup(memberSignupRequestDTO);
 
+            if (log.isInfoEnabled()) {
+                log.info("signup Controller Success : {}", memberDTO.toString());
+            }
             return ResponseResultCode.success(MemberSignupResponseDTO.of(memberDTO));
         } catch (Exception e) {
-            log.error(e.getMessage());
-
+            if (log.isErrorEnabled()) {
+                log.error("signup Controller Error : {}", e.getMessage());
+            }
             throw new ResponseStatusException(ErrorCode.SIGNUP_NOT_FOUND.getHttpStatus(), ErrorCode.SIGNUP_NOT_FOUND.getMessage());
         }
     }
@@ -53,10 +57,14 @@ public class MemberController {
         try {
             MemberLoginDTO memberLoginDTO = memberService.login(memberLoginRequestDTO);
 
+            if (log.isInfoEnabled()) {
+                log.info("login Controller Success : {}", memberLoginDTO.toString());
+            }
             return ResponseResultCode.success(MemberLoginResponseDTO.of(memberLoginDTO));
         } catch (Exception e) {
-            log.error(e.getMessage());
-
+            if (log.isErrorEnabled()) {
+                log.error("login Controller Error : {}", e.getMessage());
+            }
             throw new ResponseStatusException(ErrorCode.LOGIN_NOT_FOUND.getHttpStatus(), ErrorCode.LOGIN_NOT_FOUND.getMessage());
         }
     }
@@ -72,10 +80,14 @@ public class MemberController {
         try {
             MemberLoginKakaoResponseDTO memberLoginKakaoResponseDTO = memberService.kakaoLogin(code);
 
+            if (log.isInfoEnabled()) {
+                log.info("kakaoLogin Controller Success : {}", memberLoginKakaoResponseDTO.toString());
+            }
             return ResponseResultCode.success(memberLoginKakaoResponseDTO);
         } catch (Exception e) {
-            log.error(e.getMessage());
-
+            if (log.isErrorEnabled()) {
+                log.error("kakaoLogin Controller Error : {}", e.getMessage());
+            }
             throw new ResponseStatusException(ErrorCode.KAKAO_NOT_FOUND.getHttpStatus(), ErrorCode.KAKAO_NOT_FOUND.getMessage());
         }
     }
@@ -93,12 +105,12 @@ public class MemberController {
             MemberLoginNaverResponseDTO memberLoginNaverResponseDTO = memberService.naverLogin(code, state);
 
             if (log.isInfoEnabled()) {
-                log.info("naverLogin Controller : " + memberLoginNaverResponseDTO.toString());
+                log.info("naverLogin Controller Success : {}", memberLoginNaverResponseDTO.toString());
             }
             return ResponseResultCode.success(memberLoginNaverResponseDTO);
         } catch (Exception e) {
-            if (log.isInfoEnabled()) {
-                log.info("naverLogin Controller : " + e.getMessage());
+            if (log.isErrorEnabled()) {
+                log.error("naverLogin Controller Error : {}", e.getMessage());
             }
             throw new ResponseStatusException(ErrorCode.NAVER_NOT_FOUND.getHttpStatus(), ErrorCode.NAVER_NOT_FOUND.getMessage());
         }
