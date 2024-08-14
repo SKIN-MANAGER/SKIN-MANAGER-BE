@@ -109,6 +109,10 @@ public class MemberService {
                 ResultCodeEnum.YES.getValue()
         ));
 
+        if (log.isInfoEnabled()) {
+            log.info("saveMemberAndLogin Method MemberEntity : {}", memberEntity);
+        }
+
         // member history 테이블 저장
         memberHstRepository.save(MemberHstEntity.createMemberHstEntity(
                 memberEntity.getMemberSeq(),
@@ -133,6 +137,10 @@ public class MemberService {
                 null
         ));
 
+        if (log.isInfoEnabled()) {
+            log.info("saveMemberAndLogin Method MemberLoginEntity : {}", memberLoginEntity);
+        }
+
         // member login history 테이블 저장
         memberLoginHstRepository.save(MemberLoginHstEntity.createMemberLoginHstEntity(
                 memberLoginEntity.getMemberLoginSeq(),
@@ -153,17 +161,20 @@ public class MemberService {
         // 로그인 전 아이디가 존재하는지 체크
         Optional<MemberLoginEntity> memberLoginEntity = memberLoginRepository.findById(memberLoginRequestDTO.getId());
 
-        if (memberLoginEntity.isEmpty()) {
-            throw new ApplicationContextException(ErrorCode.INVALID_ID_OR_PWD.getMessage());
-        } else {
-            // 해당 아이디의 패스워드와 입력받은 패스워드가 일치하는지 체크
-            if (encoder.matches(memberLoginRequestDTO.getPwd(), memberLoginEntity.get().getPwd())) {
-                // 로그인, 로그인 히스토리 테이블 수정
-                saveLogin(memberLoginRequestDTO, memberLoginEntity);
-            } else {
-                throw new ApplicationContextException(ErrorCode.INVALID_ID_OR_PWD.getMessage());
-            }
+        if (log.isInfoEnabled()) {
+            log.info("login Method Optional<MemberLoginEntity> {}", memberLoginEntity);
         }
+
+        memberLoginEntity.ifPresentOrElse(
+                (obj) -> {
+                    if (encoder.matches(memberLoginRequestDTO.getPwd(), memberLoginEntity.get().getPwd())) {
+                        saveLogin(memberLoginRequestDTO, memberLoginEntity);
+                    }
+                },
+                () -> {
+                    throw new ApplicationContextException(ErrorCode.INVALID_ID_OR_PWD.getMessage());
+                }
+        );
         return MemberLoginDTO.of(memberLoginEntity.get());
     }
 
@@ -245,6 +256,10 @@ public class MemberService {
         } catch (JsonProcessingException e) {
             throw new ApplicationContextException(ErrorCode.TOKEN_NOT_FOUND.getMessage());
         }
+
+        if (log.isInfoEnabled()) {
+            log.info("getAccessToken Method JsonNode {}", jsonNode);
+        }
         return jsonNode.get("access_token").asText();
     }
 
@@ -276,24 +291,19 @@ public class MemberService {
             throw new ApplicationContextException(ErrorCode.USER_INFO_NOT_FOUND.getMessage());
         }
 
+        if (log.isInfoEnabled()) {
+            log.info("getKakaoInfo Method JsonNode {}", jsonNode);
+        }
+
         Long id = jsonNode.get("id").asLong();
         String email = jsonNode.get("kakao_account").get("email").asText();
         String name = jsonNode.get("kakao_account").get("name").asText();
-        String phone = jsonNode.get("phone_number").asText();
+        String phone = jsonNode.get("kakao_account").get("phone_number").asText().substring(4);
 
-        String firstPhone;
-        String middlePhone;
-        String lastPhone;
-
-        if (phone.length() == 10) {
-            firstPhone = phone.substring(0, 3);
-            middlePhone = phone.substring(3, 6);
-            lastPhone = phone.substring(6);
-        } else {
-            firstPhone = phone.substring(0, 3);
-            middlePhone = phone.substring(3, 7);
-            lastPhone = phone.substring(7);
-        }
+        String[] phoneArray = phone.split("-");
+        String firstPhone = "0" + phoneArray[0];
+        String middlePhone = phoneArray[1];
+        String lastPhone = phoneArray[2];
 
         userInfo.put("id", id);
         userInfo.put("email", email);
@@ -330,6 +340,9 @@ public class MemberService {
 
         AuthTokens token = authTokensGenerator.generate(uid);
 
+        if (log.isInfoEnabled()) {
+            log.info("getKakaoLogin Method AuthTokens {}", token);
+        }
         return new MemberLoginKakaoResponseDTO(uid, email, token);
     }
 
@@ -390,6 +403,10 @@ public class MemberService {
                 ResultCodeEnum.YES.getValue()
         ));
 
+        if (log.isInfoEnabled()) {
+            log.info("saveMemberAndLogin Method MemberEntity {}", memberEntity);
+        }
+
         // member history 테이블 저장
         memberHstRepository.save(MemberHstEntity.createMemberHstEntity(
                 memberEntity.getMemberSeq(),
@@ -413,6 +430,10 @@ public class MemberService {
                 0,
                 null
         ));
+
+        if (log.isInfoEnabled()) {
+            log.info("saveMemberAndLogin Method MemberLoginEntity {}", memberLoginEntity);
+        }
 
         // member login history 테이블 저장
         memberLoginHstRepository.save(MemberLoginHstEntity.createMemberLoginHstEntity(
@@ -477,7 +498,7 @@ public class MemberService {
         }
 
         if (log.isInfoEnabled()) {
-            log.info("naverLogin Service getAccessToken : " + jsonNode);
+            log.info("getAccessToken Method JsonNode {}", jsonNode);
         }
         return jsonNode.get("access_token").asText();
     }
@@ -511,7 +532,7 @@ public class MemberService {
         }
 
         if (log.isInfoEnabled()) {
-            log.info("naverLogin Service getNaverInfo : " + jsonNode);
+            log.info("getNaverInfo Method JsonNode : " + jsonNode);
         }
 
         String id = jsonNode.get("response").get("id").asText();
@@ -519,19 +540,10 @@ public class MemberService {
         String name = jsonNode.get("response").get("name").asText();
         String phone = jsonNode.get("response").get("mobile").asText();
 
-        String firstPhone;
-        String middlePhone;
-        String lastPhone;
-
-        if (phone.length() == 10) {
-            firstPhone = phone.substring(0, 3);
-            middlePhone = phone.substring(3, 6);
-            lastPhone = phone.substring(6);
-        } else {
-            firstPhone = phone.substring(0, 3);
-            middlePhone = phone.substring(3, 7);
-            lastPhone = phone.substring(7);
-        }
+        String[] phoneArray = phone.split("-");
+        String firstPhone = phoneArray[0];
+        String middlePhone = phoneArray[1];
+        String lastPhone = phoneArray[2];
 
         userInfo.put("id", id);
         userInfo.put("email", email);
@@ -568,6 +580,9 @@ public class MemberService {
 
         AuthTokens token = authTokensGenerator.generate(uid);
 
+        if (log.isInfoEnabled()) {
+            log.info("getNaverLogin Method AuthTokens {}", token);
+        }
         return new MemberLoginNaverResponseDTO(uid, email, token);
     }
 }
