@@ -18,6 +18,7 @@ public class MemberLoginDTO {
     private String id;
     private String pwd;
     private int pwdErrCnt;
+    private String autoLogin;
     private Timestamp regDtm;
     private Timestamp modDtm;
 
@@ -29,6 +30,7 @@ public class MemberLoginDTO {
                 memberLoginEntity.getId(),
                 memberLoginEntity.getPwd(),
                 memberLoginEntity.getPwdErrCnt(),
+                memberLoginEntity.getAutoLogin(),
                 memberLoginEntity.getRegDtm(),
                 memberLoginEntity.getModDtm()
         );

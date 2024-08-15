@@ -2,7 +2,6 @@ package com.skin_manager.skin_manager.controller;
 
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
-import com.skin_manager.skin_manager.model.dto.member.login.MemberLoginDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.auto.request.MemberLoginAutoRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.auto.response.MemberLoginAutoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
@@ -57,12 +56,12 @@ public class MemberController {
     @PostMapping("/login")
     public ResponseResultCode<MemberLoginResponseDTO> login(@RequestBody MemberLoginRequestDTO memberLoginRequestDTO) {
         try {
-            MemberLoginDTO memberLoginDTO = memberService.login(memberLoginRequestDTO);
+            MemberLoginResponseDTO memberLoginResponseDTO = memberService.login(memberLoginRequestDTO);
 
             if (log.isInfoEnabled()) {
-                log.info("login Controller Success : {}", memberLoginDTO.toString());
+                log.info("login Controller Success : {}", memberLoginResponseDTO.toString());
             }
-            return ResponseResultCode.success(MemberLoginResponseDTO.of(memberLoginDTO));
+            return ResponseResultCode.success(memberLoginResponseDTO);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("login Controller Error : {}", e.getMessage());
@@ -75,12 +74,13 @@ public class MemberController {
      * 카카오로그인
      *
      * @param code
+     * @param autoLogin
      * @return
      */
     @GetMapping("/kakao/login")
-    public ResponseResultCode<MemberLoginKakaoResponseDTO> kakaoLogin(@RequestParam String code) {
+    public ResponseResultCode<MemberLoginKakaoResponseDTO> kakaoLogin(@RequestParam String code, @RequestParam String autoLogin) {
         try {
-            MemberLoginKakaoResponseDTO memberLoginKakaoResponseDTO = memberService.kakaoLogin(code);
+            MemberLoginKakaoResponseDTO memberLoginKakaoResponseDTO = memberService.kakaoLogin(code, autoLogin);
 
             if (log.isInfoEnabled()) {
                 log.info("kakaoLogin Controller Success : {}", memberLoginKakaoResponseDTO.toString());
@@ -99,12 +99,13 @@ public class MemberController {
      *
      * @param code
      * @param state
+     * @param autoLogin
      * @return
      */
     @GetMapping("/naver/login")
-    public ResponseResultCode<MemberLoginNaverResponseDTO> naverLogin(@RequestParam String code, @RequestParam String state) {
+    public ResponseResultCode<MemberLoginNaverResponseDTO> naverLogin(@RequestParam String code, @RequestParam String state, @RequestParam String autoLogin) {
         try {
-            MemberLoginNaverResponseDTO memberLoginNaverResponseDTO = memberService.naverLogin(code, state);
+            MemberLoginNaverResponseDTO memberLoginNaverResponseDTO = memberService.naverLogin(code, state, autoLogin);
 
             if (log.isInfoEnabled()) {
                 log.info("naverLogin Controller Success : {}", memberLoginNaverResponseDTO.toString());
@@ -119,15 +120,15 @@ public class MemberController {
     }
 
     /**
-     * 자동로그인
+     * 로그인갱신
      *
      * @param memberLoginAutoRequestDTO
      * @return
      */
-    @PostMapping("/auto/login")
-    public ResponseResultCode<MemberLoginAutoResponseDTO> autoLogin(@RequestBody MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
+    @PostMapping("/login/refresh")
+    public ResponseResultCode<MemberLoginAutoResponseDTO> loginRefresh(@RequestBody MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
         try {
-            MemberLoginAutoResponseDTO memberLoginAutoResponseDTO = memberService.autoLogin(memberLoginAutoRequestDTO);
+            MemberLoginAutoResponseDTO memberLoginAutoResponseDTO = memberService.loginRefresh(memberLoginAutoRequestDTO);
 
             if (log.isInfoEnabled()) {
                 log.info("autoLogin Controller Success : {}", memberLoginAutoResponseDTO.toString());
@@ -137,7 +138,7 @@ public class MemberController {
             if (log.isErrorEnabled()) {
                 log.error("autoLogin Controller Error : {}", e.getMessage());
             }
-            throw new ResponseStatusException(ErrorCode.AUTO_LOGIN_ERROR.getHttpStatus(), ErrorCode.AUTO_LOGIN_ERROR.getMessage());
+            throw new ResponseStatusException(ErrorCode.INVALID_TOKEN.getHttpStatus(), ErrorCode.INVALID_TOKEN.getMessage());
         }
     }
 }

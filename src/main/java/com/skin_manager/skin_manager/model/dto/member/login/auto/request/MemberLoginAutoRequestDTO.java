@@ -10,6 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberLoginAutoRequestDTO {
+    private String id;
     private String sns;
-    private String refreshToken;
 }

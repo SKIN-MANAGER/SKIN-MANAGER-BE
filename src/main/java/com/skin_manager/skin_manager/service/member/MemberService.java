@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
-import com.skin_manager.skin_manager.model.dto.member.login.MemberLoginDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.auto.request.MemberLoginAutoRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.auto.response.MemberLoginAutoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.request.MemberLoginKakaoRequestDTO;
@@ -14,6 +13,7 @@ import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.Membe
 import com.skin_manager.skin_manager.model.dto.member.login.naver.request.MemberLoginNaverRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.response.MemberLoginNaverResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.request.MemberLoginRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.response.MemberLoginResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
 import com.skin_manager.skin_manager.model.entity.member.MemberEntity;
 import com.skin_manager.skin_manager.model.entity.member.hst.MemberHstEntity;
@@ -45,6 +45,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -136,6 +137,7 @@ public class MemberService {
                 memberSigupRequestDTO.getId(),
                 encoder.encode(memberSigupRequestDTO.getPwd()),
                 0,
+                "N",
                 null
         ));
 
@@ -148,7 +150,8 @@ public class MemberService {
                 memberLoginEntity.getMemberLoginSeq(),
                 memberSigupRequestDTO.getId(),
                 encoder.encode(memberSigupRequestDTO.getPwd()),
-                memberLoginEntity.getPwdErrCnt()
+                memberLoginEntity.getPwdErrCnt(),
+                memberLoginEntity.getAutoLogin()
         ));
         return memberEntity;
     }
@@ -159,7 +162,8 @@ public class MemberService {
      * @param memberLoginRequestDTO
      * @return
      */
-    public MemberLoginDTO login(MemberLoginRequestDTO memberLoginRequestDTO) {
+    public MemberLoginResponseDTO login(MemberLoginRequestDTO memberLoginRequestDTO) {
+        AuthTokens token;
         // 로그인 전 아이디가 존재하는지 체크
         Optional<MemberLoginEntity> memberLoginEntity = memberLoginRepository.findById(memberLoginRequestDTO.getId());
 
@@ -167,17 +171,16 @@ public class MemberService {
             log.info("login Method Optional<MemberLoginEntity> {}", memberLoginEntity);
         }
 
-        memberLoginEntity.ifPresentOrElse(
-                (obj) -> {
-                    if (encoder.matches(memberLoginRequestDTO.getPwd(), memberLoginEntity.get().getPwd())) {
-                        saveLogin(memberLoginRequestDTO, memberLoginEntity);
-                    }
-                },
-                () -> {
-                    throw new ApplicationContextException(ErrorCode.INVALID_ID_OR_PWD.getMessage());
-                }
-        );
-        return MemberLoginDTO.of(memberLoginEntity.get());
+        if (memberLoginEntity.isEmpty()) {
+            throw new ApplicationContextException(ErrorCode.INVALID_ID_OR_PWD.getMessage());
+        } else {
+            if (encoder.matches(memberLoginRequestDTO.getPwd(), memberLoginEntity.get().getPwd())) {
+                token = saveLogin(memberLoginRequestDTO, memberLoginEntity.get());
+            } else {
+                throw new ApplicationContextException(ErrorCode.INVALID_ID_OR_PWD.getMessage());
+            }
+        }
+        return new MemberLoginResponseDTO(memberLoginEntity.get().getId(), token);
     }
 
     /**
@@ -188,33 +191,51 @@ public class MemberService {
      * @param memberLoginRequestDTO
      * @param memberLoginEntity
      */
-    private void saveLogin(MemberLoginRequestDTO memberLoginRequestDTO, Optional<MemberLoginEntity> memberLoginEntity) {
+    private AuthTokens saveLogin(MemberLoginRequestDTO memberLoginRequestDTO, MemberLoginEntity memberLoginEntity) {
         // 로그인 후 member login 테이블 수정
         memberLoginRepository.save(MemberLoginEntity.createMemberLoginEntity(
-                memberLoginEntity.get().getMemberLoginSeq(),
-                memberLoginEntity.get().getMemberSeq(),
+                memberLoginEntity.getMemberLoginSeq(),
+                memberLoginEntity.getMemberSeq(),
                 memberLoginRequestDTO.getId(),
                 encoder.encode(memberLoginRequestDTO.getPwd()),
                 0,
-                memberLoginEntity.get().getRegDtm()
+                memberLoginRequestDTO.getAutoLogin(),
+                memberLoginEntity.getRegDtm()
         ));
 
         // 로그인 후 member login history 테이블 저장
         memberLoginHstRepository.save(MemberLoginHstEntity.createMemberLoginHstEntity(
-                memberLoginEntity.get().getMemberSeq(),
+                memberLoginEntity.getMemberSeq(),
                 memberLoginRequestDTO.getId(),
                 encoder.encode(memberLoginRequestDTO.getPwd()),
-                memberLoginEntity.get().getPwdErrCnt()
+                memberLoginEntity.getPwdErrCnt(),
+                memberLoginRequestDTO.getAutoLogin()
         ));
+
+        AuthTokens token = authTokensGenerator.generate(memberLoginRequestDTO.getId());
+
+        if (log.isInfoEnabled()) {
+            log.info("saveLogin Method AuthTokens {}", token);
+        }
+
+        if (ResultCodeEnum.YES.getValue().equals(memberLoginRequestDTO.getAutoLogin())) {
+            // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+            redisTemplate.opsForValue().set(memberLoginRequestDTO.getId(), token.getRefreshToken(), token.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
+        } else {
+            // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
+            redisTemplate.opsForValue().set(memberLoginRequestDTO.getId(), token.getAccessToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+        }
+        return token;
     }
 
     /**
      * 카카오로그인
      *
      * @param code
+     * @param autoLogin
      * @return
      */
-    public MemberLoginKakaoResponseDTO kakaoLogin(String code) {
+    public MemberLoginKakaoResponseDTO kakaoLogin(String code, String autoLogin) {
         // 인가코드로 토큰 요청
         String accessToken = getAccessToken(new MemberLoginKakaoRequestDTO(code, kakaoClientId, kakaoRedirectUri));
 
@@ -222,7 +243,7 @@ public class MemberService {
         Map<String, Object> userInfo = getKakaoInfo(accessToken);
 
         // 사용자정보 등록
-        MemberLoginKakaoResponseDTO memberLoginKakaoResponseDTO = getKakaoLogin(userInfo);
+        MemberLoginKakaoResponseDTO memberLoginKakaoResponseDTO = getKakaoLogin(userInfo, autoLogin);
 
         return memberLoginKakaoResponseDTO;
     }
@@ -322,9 +343,10 @@ public class MemberService {
      * 사용자정보를 저장하고 토큰을 생성하는 메소드이다.
      *
      * @param userInfo
+     * @param autoLogin
      * @return
      */
-    private MemberLoginKakaoResponseDTO getKakaoLogin(Map<String, Object> userInfo) {
+    private MemberLoginKakaoResponseDTO getKakaoLogin(Map<String, Object> userInfo, String autoLogin) {
         String uid = userInfo.get("id").toString();
         String email = userInfo.get("email").toString();
         String name = userInfo.get("name").toString();
@@ -335,8 +357,8 @@ public class MemberService {
 
         // 회원가입과 로그인을 동시에 체크
         memberLoginRepository.findById(uid).ifPresentOrElse(
-                obj -> saveLogin(uid, sns, obj),
-                () -> saveMemberAndLogin(name, firstPhone, middlePhone, lastPhone, uid, email, MemberEnum.USER.getValue(), sns)
+                obj -> saveLogin(uid, sns, obj, autoLogin),
+                () -> saveMemberAndLogin(name, firstPhone, middlePhone, lastPhone, uid, email, MemberEnum.USER.getValue(), sns, autoLogin)
         );
 
         AuthTokens token = authTokensGenerator.generate(uid);
@@ -345,9 +367,13 @@ public class MemberService {
             log.info("getKakaoLogin Method AuthTokens {}", token);
         }
 
-        // redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
-        redisTemplate.opsForValue().set(token.getRefreshToken(), uid);
-
+        if (ResultCodeEnum.YES.getValue().equals(autoLogin)) {
+            // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+            redisTemplate.opsForValue().set(uid, token.getRefreshToken(), token.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
+        } else {
+            // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
+            redisTemplate.opsForValue().set(uid, token.getAccessToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+        }
         return new MemberLoginKakaoResponseDTO(uid, email, name, firstPhone, middlePhone, lastPhone, token);
     }
 
@@ -359,8 +385,9 @@ public class MemberService {
      * @param id
      * @param sns
      * @param memberLoginEntity
+     * @param autoLogin
      */
-    private void saveLogin(String id, String sns, MemberLoginEntity memberLoginEntity) {
+    private void saveLogin(String id, String sns, MemberLoginEntity memberLoginEntity, String autoLogin) {
         // 로그인 후 member login 테이블 수정
         memberLoginRepository.save(MemberLoginEntity.createMemberLoginEntity(
                 memberLoginEntity.getMemberLoginSeq(),
@@ -368,6 +395,7 @@ public class MemberService {
                 id,
                 encoder.encode(sns),
                 0,
+                autoLogin,
                 memberLoginEntity.getRegDtm()
         ));
 
@@ -376,7 +404,8 @@ public class MemberService {
                 memberLoginEntity.getMemberSeq(),
                 id,
                 encoder.encode(sns),
-                memberLoginEntity.getPwdErrCnt()
+                memberLoginEntity.getPwdErrCnt(),
+                autoLogin
         ));
     }
 
@@ -393,8 +422,9 @@ public class MemberService {
      * @param email
      * @param role
      * @param sns
+     * @param autoLogin
      */
-    private void saveMemberAndLogin(String name, String firstPhone, String middlePhone, String lastPhone, String id, String email, String role, String sns) {
+    private void saveMemberAndLogin(String name, String firstPhone, String middlePhone, String lastPhone, String id, String email, String role, String sns, String autoLogin) {
         // member 테이블 저장
         MemberEntity memberEntity = memberRepository.save(MemberEntity.createMemberEntity(
                 name,
@@ -433,6 +463,7 @@ public class MemberService {
                 id,
                 encoder.encode(sns),
                 0,
+                autoLogin,
                 null
         ));
 
@@ -445,7 +476,8 @@ public class MemberService {
                 memberLoginEntity.getMemberLoginSeq(),
                 id,
                 encoder.encode(sns),
-                memberLoginEntity.getPwdErrCnt()
+                memberLoginEntity.getPwdErrCnt(),
+                autoLogin
         ));
     }
 
@@ -454,9 +486,10 @@ public class MemberService {
      *
      * @param code
      * @param state
+     * @param autoLogin
      * @return
      */
-    public MemberLoginNaverResponseDTO naverLogin(String code, String state) {
+    public MemberLoginNaverResponseDTO naverLogin(String code, String state, String autoLogin) {
         // 인가코드로 토큰 요청
         String accessToken = getAccessToken(new MemberLoginNaverRequestDTO(code, naverClientId, naverClientSecret, state));
 
@@ -464,7 +497,7 @@ public class MemberService {
         Map<String, Object> userInfo = getNaverInfo(accessToken);
 
         // 사용자정보 등록
-        MemberLoginNaverResponseDTO memberLoginNaverResponseDTO = getNaverLogin(userInfo);
+        MemberLoginNaverResponseDTO memberLoginNaverResponseDTO = getNaverLogin(userInfo, autoLogin);
 
         return memberLoginNaverResponseDTO;
     }
@@ -565,9 +598,10 @@ public class MemberService {
      * 사용자정보를 저장하고 토큰을 생성하는 메소드이다.
      *
      * @param userInfo
+     * @param autoLogin
      * @return
      */
-    private MemberLoginNaverResponseDTO getNaverLogin(Map<String, Object> userInfo) {
+    private MemberLoginNaverResponseDTO getNaverLogin(Map<String, Object> userInfo, String autoLogin) {
         String uid = userInfo.get("id").toString();
         String email = userInfo.get("email").toString();
         String name = userInfo.get("name").toString();
@@ -578,8 +612,8 @@ public class MemberService {
 
         // 회원가입과 로그인을 동시에 체크
         memberLoginRepository.findById(uid).ifPresentOrElse(
-                obj -> saveLogin(uid, sns, obj),
-                () -> saveMemberAndLogin(name, firstPhone, middlePhone, lastPhone, uid, email, MemberEnum.USER.getValue(), sns)
+                obj -> saveLogin(uid, sns, obj, autoLogin),
+                () -> saveMemberAndLogin(name, firstPhone, middlePhone, lastPhone, uid, email, MemberEnum.USER.getValue(), sns, autoLogin)
         );
 
         AuthTokens token = authTokensGenerator.generate(uid);
@@ -588,53 +622,65 @@ public class MemberService {
             log.info("getNaverLogin Method AuthTokens : {}", token);
         }
 
-        // redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
-        redisTemplate.opsForValue().set(token.getRefreshToken(), uid);
-
+        if (ResultCodeEnum.YES.getValue().equals(autoLogin)) {
+            // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+            redisTemplate.opsForValue().set(uid, token.getRefreshToken(), token.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
+        } else {
+            // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
+            redisTemplate.opsForValue().set(uid, token.getAccessToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+        }
         return new MemberLoginNaverResponseDTO(uid, email, name, firstPhone, middlePhone, lastPhone, token);
     }
 
     /**
-     * 자동로그인
+     * 로그인갱신
      * <p>
-     * redis를 조회해 토큰을 갱신하여 자동로그인하는 메소드이다.
+     * redis를 조회하여 로그인을 갱신하는 메소드이다.
      *
      * @param memberLoginAutoRequestDTO
      * @return
      */
-    public MemberLoginAutoResponseDTO autoLogin(MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
-        String snsId;
+    public MemberLoginAutoResponseDTO loginRefresh(MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
+        String token;
         AuthTokens authTokens;
         Optional<MemberEntity> memberEntity;
+        Optional<MemberLoginEntity> memberLoginEntity;
 
         try {
-            snsId = redisTemplate.opsForValue().get(memberLoginAutoRequestDTO.getRefreshToken());
+            token = redisTemplate.opsForValue().get(memberLoginAutoRequestDTO.getId());
 
             if (log.isInfoEnabled()) {
-                log.info("autoLogin Method String : {}", snsId);
+                log.info("autoLogin Method String : {}", token);
             }
         } catch (Exception e) {
-            throw new ApplicationContextException(ErrorCode.INVALID_REFRESH_TOKEN.getMessage());
+            throw new ApplicationContextException(ErrorCode.INVALID_ID.getMessage());
         }
 
-        if (snsId == null) {
+        if (token == null) {
             throw new ApplicationContextException(ErrorCode.BAD_REQUEST.getMessage());
         } else {
-            authTokens = authTokensGenerator.generate(snsId);
-            memberEntity = memberRepository.findBySnsAndSnsId(memberLoginAutoRequestDTO.getSns(), snsId);
+            authTokens = authTokensGenerator.generate(memberLoginAutoRequestDTO.getId());
+            memberEntity = memberRepository.findBySnsAndSnsId(memberLoginAutoRequestDTO.getSns(), memberLoginAutoRequestDTO.getId());
+            memberLoginEntity = memberLoginRepository.findById(memberLoginAutoRequestDTO.getId());
+
+            if (memberEntity.isEmpty() || memberLoginEntity.isEmpty()) {
+                throw new ApplicationContextException(ErrorCode.NO_EXIST_MEMBER.getMessage());
+            }
 
             if (log.isInfoEnabled()) {
                 log.info("autoLogin Method AuthTokens : {}", authTokens.toString());
                 log.info("autoLogin Method Optional<MemberEntity> : {}", memberEntity);
+                log.info("autoLogin Method Optional<MemberLoginEntity> : {}", memberLoginEntity);
             }
 
-            // redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
-            redisTemplate.opsForValue().set(authTokens.getRefreshToken(), snsId);
+            if (ResultCodeEnum.YES.getValue().equals(memberLoginEntity.get().getAutoLogin())) {
+                // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+                redisTemplate.opsForValue().set(memberLoginAutoRequestDTO.getId(), authTokens.getRefreshToken(), authTokens.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
+            } else {
+                // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
+                redisTemplate.opsForValue().set(memberLoginAutoRequestDTO.getId(), authTokens.getAccessToken(), authTokens.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+            }
         }
-
-        if (memberEntity.isEmpty()) {
-            throw new ApplicationContextException(ErrorCode.NO_EXIST_MEMBER.getMessage());
-        }
-        return new MemberLoginAutoResponseDTO(snsId, memberEntity.get().getEmail(), memberEntity.get().getName(), memberEntity.get().getFirstPhone(), memberEntity.get().getMiddlePhone(), memberEntity.get().getLastPhone(), authTokens);
+        return new MemberLoginAutoResponseDTO(memberLoginAutoRequestDTO.getId(), memberEntity.get().getEmail(), memberEntity.get().getName(), memberEntity.get().getFirstPhone(), memberEntity.get().getMiddlePhone(), memberEntity.get().getLastPhone(), authTokens);
     }
 }
