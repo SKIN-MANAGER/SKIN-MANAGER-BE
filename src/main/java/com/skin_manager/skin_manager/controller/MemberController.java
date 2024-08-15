@@ -3,6 +3,8 @@ package com.skin_manager.skin_manager.controller;
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.MemberLoginDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.auto.request.MemberLoginAutoRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.auto.response.MemberLoginAutoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.response.MemberLoginNaverResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.request.MemberLoginRequestDTO;
@@ -113,6 +115,29 @@ public class MemberController {
                 log.error("naverLogin Controller Error : {}", e.getMessage());
             }
             throw new ResponseStatusException(ErrorCode.NAVER_NOT_FOUND.getHttpStatus(), ErrorCode.NAVER_NOT_FOUND.getMessage());
+        }
+    }
+
+    /**
+     * 자동로그인
+     *
+     * @param memberLoginAutoRequestDTO
+     * @return
+     */
+    @PostMapping("/auto/login")
+    public ResponseResultCode<MemberLoginAutoResponseDTO> autoLogin(@RequestBody MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
+        try {
+            MemberLoginAutoResponseDTO memberLoginAutoResponseDTO = memberService.autoLogin(memberLoginAutoRequestDTO);
+
+            if (log.isInfoEnabled()) {
+                log.info("autoLogin Controller Success : {}", memberLoginAutoResponseDTO.toString());
+            }
+            return ResponseResultCode.success(memberLoginAutoResponseDTO);
+        } catch (Exception e) {
+            if (log.isErrorEnabled()) {
+                log.error("autoLogin Controller Error : {}", e.getMessage());
+            }
+            throw new ResponseStatusException(ErrorCode.AUTO_LOGIN_ERROR.getHttpStatus(), ErrorCode.AUTO_LOGIN_ERROR.getMessage());
         }
     }
 }

@@ -1,6 +1,7 @@
-package com.skin_manager.skin_manager.model.dto.member.login;
+package com.skin_manager.skin_manager.repository.member.login;
 
 
+import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
