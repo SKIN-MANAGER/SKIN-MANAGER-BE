@@ -13,5 +13,9 @@ import lombok.Setter;
 public class MemberLoginKakaoResponseDTO {
     private String id;
     private String email;
+    private String name;
+    private String firstPhone;
+    private String middlePhone;
+    private String lastPhone;
     private AuthTokens token;
 }

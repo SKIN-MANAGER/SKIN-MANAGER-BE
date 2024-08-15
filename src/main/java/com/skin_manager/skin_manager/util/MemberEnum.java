@@ -10,9 +10,9 @@ public enum MemberEnum {
 
     USER("USER"),
 
-    KAKAO("kakao"),
+    KAKAO("KAKAO"),
 
-    NAVER("naver");
+    NAVER("NAVER");
 
     private String value;
 }

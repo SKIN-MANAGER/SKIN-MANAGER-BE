@@ -36,7 +36,12 @@ public enum ErrorCode {
     USER_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보 요청 중 오류 발생"),
 
     NAVER_NOT_FOUND(HttpStatus.NOT_FOUND, "네이버 로그인 중 오류 발생"),
-    ;
+
+    AUTO_LOGIN_ERROR(HttpStatus.NOT_FOUND, "자동 로그인 중 오류 발생"),
+
+    INVALID_REFRESH_TOKEN(HttpStatus.NOT_FOUND, "유효하지 않은 REFRESH TOKEN 입니다."),
+
+    NO_EXIST_MEMBER(HttpStatus.NOT_FOUND, "존재하지 않는 멤버입니다.");
 
     private HttpStatus httpStatus;
     private String message;

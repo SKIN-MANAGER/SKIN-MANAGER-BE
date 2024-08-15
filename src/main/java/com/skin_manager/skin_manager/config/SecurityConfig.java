@@ -32,7 +32,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(
-                                "/api/signup", "/api/login", "/api/kakao/login", "/api/naver/login"
+                                "/api/signup", "/api/login", "/api/kakao/login", "/api/naver/login", "/api/auto/login"
                         ).permitAll()
                         .anyRequest().authenticated());
 

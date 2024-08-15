@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.login;
+package com.skin_manager.skin_manager.repository.member.login;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
