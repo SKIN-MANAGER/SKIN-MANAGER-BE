@@ -33,6 +33,9 @@ public class MemberLoginHstEntity {
     @Column(name = "PWD_ERR_CNT")
     private int pwdErrCnt;
 
+    @Column(name = "AUTO_LOGIN")
+    private String autoLogin;
+
     @Column(name = "REG_DTM")
     private Timestamp regDtm;
 
@@ -49,12 +52,13 @@ public class MemberLoginHstEntity {
         this.modDtm = Timestamp.from(Instant.now());
     }
 
-    public static MemberLoginHstEntity createMemberLoginHstEntity(long memberLoginSeq, String id, String pwd, int pwdErrCnt) {
+    public static MemberLoginHstEntity createMemberLoginHstEntity(long memberLoginSeq, String id, String pwd, int pwdErrCnt, String autoLogin) {
         MemberLoginHstEntity memberLoginHstEntity = new MemberLoginHstEntity();
         memberLoginHstEntity.setMemberLoginSeq(memberLoginSeq);
         memberLoginHstEntity.setId(id);
         memberLoginHstEntity.setPwd(pwd);
         memberLoginHstEntity.setPwdErrCnt(pwdErrCnt);
+        memberLoginHstEntity.setAutoLogin(autoLogin);
         return memberLoginHstEntity;
     }
 }

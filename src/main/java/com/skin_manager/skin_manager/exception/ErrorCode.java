@@ -25,21 +25,21 @@ public enum ErrorCode {
 
     ALREADY_RECOMMENDED(HttpStatus.CONFLICT, "해당 회원은 이미 게시글을 추천한 상태입니다."),
 
-    KAKAO_NOT_FOUND(HttpStatus.NOT_FOUND, "카카오 로그인 중 오류 발생"),
-
     SIGNUP_NOT_FOUND(HttpStatus.NOT_FOUND, "회원가입 중 오류 발생"),
 
     LOGIN_NOT_FOUND(HttpStatus.NOT_FOUND, "로그인 중 오류 발생"),
 
-    TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "토큰 요청 중 오류 발생"),
-
-    USER_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보 요청 중 오류 발생"),
+    KAKAO_NOT_FOUND(HttpStatus.NOT_FOUND, "카카오 로그인 중 오류 발생"),
 
     NAVER_NOT_FOUND(HttpStatus.NOT_FOUND, "네이버 로그인 중 오류 발생"),
 
-    AUTO_LOGIN_ERROR(HttpStatus.NOT_FOUND, "자동 로그인 중 오류 발생"),
+    TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "토큰 매핑 중 오류 발생"),
 
-    INVALID_REFRESH_TOKEN(HttpStatus.NOT_FOUND, "유효하지 않은 REFRESH TOKEN 입니다."),
+    USER_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보 매핑 중 오류 발생"),
+
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+
+    INVALID_ID(HttpStatus.NOT_FOUND, "유효하지 않은 ID 입니다."),
 
     NO_EXIST_MEMBER(HttpStatus.NOT_FOUND, "존재하지 않는 멤버입니다.");
 
