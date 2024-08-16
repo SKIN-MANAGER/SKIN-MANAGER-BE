@@ -2,10 +2,10 @@ package com.skin_manager.skin_manager.controller;
 
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
-import com.skin_manager.skin_manager.model.dto.member.login.auto.request.MemberLoginAutoRequestDTO;
-import com.skin_manager.skin_manager.model.dto.member.login.auto.response.MemberLoginAutoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.response.MemberLoginNaverResponseDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.refresh.request.MemberLoginRefreshRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.refresh.response.MemberLoginRefreshResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.request.MemberLoginRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.response.MemberLoginResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
@@ -122,18 +122,18 @@ public class MemberController {
     /**
      * 로그인갱신
      *
-     * @param memberLoginAutoRequestDTO
+     * @param memberLoginRefreshRequestDTO
      * @return
      */
     @PostMapping("/login/refresh")
-    public ResponseResultCode<MemberLoginAutoResponseDTO> loginRefresh(@RequestBody MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
+    public ResponseResultCode<MemberLoginRefreshResponseDTO> loginRefresh(@RequestBody MemberLoginRefreshRequestDTO memberLoginRefreshRequestDTO) {
         try {
-            MemberLoginAutoResponseDTO memberLoginAutoResponseDTO = memberService.loginRefresh(memberLoginAutoRequestDTO);
+            MemberLoginRefreshResponseDTO memberLoginRefreshResponseDTO = memberService.loginRefresh(memberLoginRefreshRequestDTO);
 
             if (log.isInfoEnabled()) {
-                log.info("autoLogin Controller Success : {}", memberLoginAutoResponseDTO.toString());
+                log.info("autoLogin Controller Success : {}", memberLoginRefreshResponseDTO.toString());
             }
-            return ResponseResultCode.success(memberLoginAutoResponseDTO);
+            return ResponseResultCode.success(memberLoginRefreshResponseDTO);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("autoLogin Controller Error : {}", e.getMessage());

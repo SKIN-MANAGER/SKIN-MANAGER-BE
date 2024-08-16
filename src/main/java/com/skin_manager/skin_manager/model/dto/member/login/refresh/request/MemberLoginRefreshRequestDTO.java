@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.login.auto.request;
+package com.skin_manager.skin_manager.model.dto.member.login.refresh.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberLoginAutoRequestDTO {
+public class MemberLoginRefreshRequestDTO {
     private String id;
-    private String sns;
 }
