@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
-import com.skin_manager.skin_manager.model.dto.member.login.auto.request.MemberLoginAutoRequestDTO;
-import com.skin_manager.skin_manager.model.dto.member.login.auto.response.MemberLoginAutoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.request.MemberLoginKakaoRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.request.MemberLoginNaverRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.response.MemberLoginNaverResponseDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.refresh.request.MemberLoginRefreshRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.login.refresh.response.MemberLoginRefreshResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.request.MemberLoginRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.response.MemberLoginResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.signup.request.MemberSignupRequestDTO;
@@ -219,11 +219,11 @@ public class MemberService {
         }
 
         if (ResultCodeEnum.YES.getValue().equals(memberLoginRequestDTO.getAutoLogin())) {
-            // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+            // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인일 경우 refreshtokenexpiretime을 저장
             redisTemplate.opsForValue().set(memberLoginRequestDTO.getId(), token.getRefreshToken(), token.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
         } else {
-            // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
-            redisTemplate.opsForValue().set(memberLoginRequestDTO.getId(), token.getAccessToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+            // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인이 아닐 경우 accesstokenexpiretime을 저장
+            redisTemplate.opsForValue().set(memberLoginRequestDTO.getId(), token.getRefreshToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
         }
         return token;
     }
@@ -368,12 +368,13 @@ public class MemberService {
         }
 
         if (ResultCodeEnum.YES.getValue().equals(autoLogin)) {
-            // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+            // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인일 경우 refreshtokenexpiretime을 저장
             redisTemplate.opsForValue().set(uid, token.getRefreshToken(), token.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
         } else {
-            // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
-            redisTemplate.opsForValue().set(uid, token.getAccessToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+            // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인이 아닐 경우 accesstokenexpiretime을 저장
+            redisTemplate.opsForValue().set(uid, token.getRefreshToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
         }
+
         return new MemberLoginKakaoResponseDTO(uid, email, name, firstPhone, middlePhone, lastPhone, token);
     }
 
@@ -623,11 +624,11 @@ public class MemberService {
         }
 
         if (ResultCodeEnum.YES.getValue().equals(autoLogin)) {
-            // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
+            // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인일 경우 refreshtokenexpiretime을 저장
             redisTemplate.opsForValue().set(uid, token.getRefreshToken(), token.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
         } else {
-            // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
-            redisTemplate.opsForValue().set(uid, token.getAccessToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+            // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인이 아닐 경우 accesstokenexpiretime을 저장
+            redisTemplate.opsForValue().set(uid, token.getRefreshToken(), token.getAccessTokenExpireTime(), TimeUnit.SECONDS);
         }
         return new MemberLoginNaverResponseDTO(uid, email, name, firstPhone, middlePhone, lastPhone, token);
     }
@@ -637,17 +638,17 @@ public class MemberService {
      * <p>
      * redis를 조회하여 로그인을 갱신하는 메소드이다.
      *
-     * @param memberLoginAutoRequestDTO
+     * @param memberLoginRefreshRequestDTO
      * @return
      */
-    public MemberLoginAutoResponseDTO loginRefresh(MemberLoginAutoRequestDTO memberLoginAutoRequestDTO) {
+    public MemberLoginRefreshResponseDTO loginRefresh(MemberLoginRefreshRequestDTO memberLoginRefreshRequestDTO) {
         String token;
         AuthTokens authTokens;
         Optional<MemberEntity> memberEntity;
         Optional<MemberLoginEntity> memberLoginEntity;
 
         try {
-            token = redisTemplate.opsForValue().get(memberLoginAutoRequestDTO.getId());
+            token = redisTemplate.opsForValue().get(memberLoginRefreshRequestDTO.getId());
 
             if (log.isInfoEnabled()) {
                 log.info("autoLogin Method String : {}", token);
@@ -659,28 +660,40 @@ public class MemberService {
         if (token == null) {
             throw new ApplicationContextException(ErrorCode.BAD_REQUEST.getMessage());
         } else {
-            authTokens = authTokensGenerator.generate(memberLoginAutoRequestDTO.getId());
-            memberEntity = memberRepository.findBySnsAndSnsId(memberLoginAutoRequestDTO.getSns(), memberLoginAutoRequestDTO.getId());
-            memberLoginEntity = memberLoginRepository.findById(memberLoginAutoRequestDTO.getId());
+            memberLoginEntity = memberLoginRepository.findById(memberLoginRefreshRequestDTO.getId());
 
-            if (memberEntity.isEmpty() || memberLoginEntity.isEmpty()) {
+            if (memberLoginEntity.isEmpty()) {
                 throw new ApplicationContextException(ErrorCode.NO_EXIST_MEMBER.getMessage());
             }
 
             if (log.isInfoEnabled()) {
-                log.info("autoLogin Method AuthTokens : {}", authTokens.toString());
-                log.info("autoLogin Method Optional<MemberEntity> : {}", memberEntity);
                 log.info("autoLogin Method Optional<MemberLoginEntity> : {}", memberLoginEntity);
             }
 
+            authTokens = authTokensGenerator.generate(memberLoginRefreshRequestDTO.getId());
+
+            if (log.isInfoEnabled()) {
+                log.info("autoLogin Method AuthTokens : {}", authTokens);
+            }
+
+            memberEntity = memberRepository.findByMemberSeq(memberLoginEntity.get().getMemberSeq());
+
+            if (memberEntity.isEmpty()) {
+                throw new ApplicationContextException(ErrorCode.NO_EXIST_MEMBER.getMessage());
+            }
+
+            if (log.isInfoEnabled()) {
+                log.info("autoLogin Method Optional<MemberEntity> : {}", memberEntity);
+            }
+
             if (ResultCodeEnum.YES.getValue().equals(memberLoginEntity.get().getAutoLogin())) {
-                // 자동로그인일 경우 redis 서버에 Map<String, String> 형태로 refreshtoken값과 id값을 저장
-                redisTemplate.opsForValue().set(memberLoginAutoRequestDTO.getId(), authTokens.getRefreshToken(), authTokens.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
+                // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인일 경우 refreshtokenexpiretime을 저장
+                redisTemplate.opsForValue().set(memberLoginRefreshRequestDTO.getId(), authTokens.getRefreshToken(), authTokens.getRefreshTokenExpireTime(), TimeUnit.SECONDS);
             } else {
-                // 자동로그인이 아닐 경우 redis 서버에 Map<String, String> 형태로 accesstoken값과 id값을 저장
-                redisTemplate.opsForValue().set(memberLoginAutoRequestDTO.getId(), authTokens.getAccessToken(), authTokens.getAccessTokenExpireTime(), TimeUnit.SECONDS);
+                // redis 서버에 Map<String, String> 형태로 id값과 refreshtoken값을 저장, 자동로그인이 아닐 경우 accesstokenexpiretime을 저장
+                redisTemplate.opsForValue().set(memberLoginRefreshRequestDTO.getId(), authTokens.getRefreshToken(), authTokens.getAccessTokenExpireTime(), TimeUnit.SECONDS);
             }
         }
-        return new MemberLoginAutoResponseDTO(memberLoginAutoRequestDTO.getId(), memberEntity.get().getEmail(), memberEntity.get().getName(), memberEntity.get().getFirstPhone(), memberEntity.get().getMiddlePhone(), memberEntity.get().getLastPhone(), authTokens);
+        return new MemberLoginRefreshResponseDTO(memberLoginRefreshRequestDTO.getId(), memberEntity.get().getEmail(), memberEntity.get().getName(), memberEntity.get().getFirstPhone(), memberEntity.get().getMiddlePhone(), memberEntity.get().getLastPhone(), authTokens);
     }
 }

@@ -1,4 +1,4 @@
-package com.skin_manager.skin_manager.model.dto.member.login.auto.response;
+package com.skin_manager.skin_manager.model.dto.member.login.refresh.response;
 
 import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberLoginAutoResponseDTO {
+public class MemberLoginRefreshResponseDTO {
     private String id;
     private String email;
     private String name;
