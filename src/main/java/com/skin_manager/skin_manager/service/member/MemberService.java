@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.check.duplicate.id.request.MemberCheckDuplicateIdRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.check.duplicate.id.response.MemberCheckDuplicateIdResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.AuthTokens;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.request.MemberLoginKakaoRequestDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
@@ -79,11 +81,6 @@ public class MemberService {
      * @return
      */
     public MemberDTO signup(MemberSignupRequestDTO memberSigupRequestDTO) {
-        // 회원가입하기 전 이미 존재하는 아이디인지 memberId 체크
-        memberLoginRepository.findById(memberSigupRequestDTO.getId()).ifPresent(it -> {
-            throw new ApplicationContextException(ErrorCode.DUPLICATED_MEMBER_ID.getMessage());
-        });
-
         // 멤버, 로그인 저장
         MemberEntity memberEntity = saveMemberAndLogin(memberSigupRequestDTO);
 
@@ -695,5 +692,29 @@ public class MemberService {
             }
         }
         return new MemberLoginRefreshResponseDTO(memberLoginRefreshRequestDTO.getId(), memberEntity.get().getEmail(), memberEntity.get().getName(), memberEntity.get().getFirstPhone(), memberEntity.get().getMiddlePhone(), memberEntity.get().getLastPhone(), authTokens);
+    }
+
+
+    /**
+     * 중복아이디체크
+     * <p>
+     * 아이디가 중복되는지 체크하는 메소드이다.
+     *
+     * @param memberCheckDuplicateIdRequestDTO
+     * @return
+     */
+    public MemberCheckDuplicateIdResponseDTO checkDuplicateId(MemberCheckDuplicateIdRequestDTO memberCheckDuplicateIdRequestDTO) {
+        MemberCheckDuplicateIdResponseDTO memberCheckDuplicateIdResponseDTO = new MemberCheckDuplicateIdResponseDTO();
+
+        // 회원가입하기 전 이미 존재하는 아이디인지 login 테이블 체크
+        memberLoginRepository.findById(memberCheckDuplicateIdRequestDTO.getId()).ifPresentOrElse(
+                (obj) -> {
+                    memberCheckDuplicateIdResponseDTO.setDuplicate(true);
+                },
+                () -> {
+                    memberCheckDuplicateIdResponseDTO.setDuplicate(false);
+                }
+        );
+        return memberCheckDuplicateIdResponseDTO;
     }
 }
