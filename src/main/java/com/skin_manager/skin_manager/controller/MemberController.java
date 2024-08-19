@@ -2,6 +2,8 @@ package com.skin_manager.skin_manager.controller;
 
 import com.skin_manager.skin_manager.exception.ErrorCode;
 import com.skin_manager.skin_manager.model.dto.member.MemberDTO;
+import com.skin_manager.skin_manager.model.dto.member.check.duplicate.id.request.MemberCheckDuplicateIdRequestDTO;
+import com.skin_manager.skin_manager.model.dto.member.check.duplicate.id.response.MemberCheckDuplicateIdResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.kakao.response.MemberLoginKakaoResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.naver.response.MemberLoginNaverResponseDTO;
 import com.skin_manager.skin_manager.model.dto.member.login.refresh.request.MemberLoginRefreshRequestDTO;
@@ -131,14 +133,37 @@ public class MemberController {
             MemberLoginRefreshResponseDTO memberLoginRefreshResponseDTO = memberService.loginRefresh(memberLoginRefreshRequestDTO);
 
             if (log.isInfoEnabled()) {
-                log.info("autoLogin Controller Success : {}", memberLoginRefreshResponseDTO.toString());
+                log.info("loginRefresh Controller Success : {}", memberLoginRefreshResponseDTO.toString());
             }
             return ResponseResultCode.success(memberLoginRefreshResponseDTO);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
-                log.error("autoLogin Controller Error : {}", e.getMessage());
+                log.error("loginRefresh Controller Error : {}", e.getMessage());
             }
             throw new ResponseStatusException(ErrorCode.INVALID_TOKEN.getHttpStatus(), ErrorCode.INVALID_TOKEN.getMessage());
+        }
+    }
+
+    /**
+     * 중복아이디체크
+     *
+     * @param memberCheckDuplicateIdRequestDTO
+     * @return
+     */
+    @PostMapping("/id/duplicate/check")
+    public ResponseResultCode<MemberCheckDuplicateIdResponseDTO> checkDuplicateId(@RequestBody MemberCheckDuplicateIdRequestDTO memberCheckDuplicateIdRequestDTO) {
+        try {
+            MemberCheckDuplicateIdResponseDTO memberCheckDuplicateIdResponseDTO = memberService.checkDuplicateId(memberCheckDuplicateIdRequestDTO);
+
+            if (log.isInfoEnabled()) {
+                log.info("checkDuplicateId Controller Success : {}", memberCheckDuplicateIdResponseDTO.toString());
+            }
+            return ResponseResultCode.success(memberCheckDuplicateIdResponseDTO);
+        } catch (Exception e) {
+            if (log.isErrorEnabled()) {
+                log.error("checkDuplicateId Controller Error : {}", e.getMessage());
+            }
+            throw new ResponseStatusException(ErrorCode.DUPLICATED_MEMBER_ID.getHttpStatus(), ErrorCode.DUPLICATED_MEMBER_ID.getMessage());
         }
     }
 }
