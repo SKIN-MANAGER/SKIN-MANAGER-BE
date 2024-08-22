@@ -1,0 +1,39 @@
+spring.application.name: skin_manager
+
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://bbaek2.synology.me:3306/SKIN_MANAGER
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    generate-ddl: false
+    hibernate.ddl-auto: none
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  data:
+    redis:
+      port: 6379
+      host: localhost
+      password: 1234
+
+kakao:
+  client-id: 9c57d3adde732ffe0ae4c2e3701fad89
+  redirect-uri: http://localhost:3000/kakaoCallbackClient
+
+naver:
+  client-id: 2Nr1VtSnKYepfvtBxXTI
+  client-secret: q8iHVKTdmP
+
+custom:
+  jwt:
+    secretKey: umXvaYXe2LfjbmOsZMzXdmJnM9c4kRcHbSuqZlUyezbIGA1w7Yu7vZ8Oqpk33OrfX8O6XS8qwyEfIxB1g7HzJL
+
+logging:
+  level:
+    root: info
