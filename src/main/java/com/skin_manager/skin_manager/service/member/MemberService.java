@@ -161,6 +161,7 @@ public class MemberService {
      */
     public MemberLoginResponseDTO login(MemberLoginRequestDTO memberLoginRequestDTO) {
         AuthTokens token;
+
         // 로그인 전 아이디가 존재하는지 체크
         Optional<MemberLoginEntity> memberLoginEntity = memberLoginRepository.findById(memberLoginRequestDTO.getId());
 
